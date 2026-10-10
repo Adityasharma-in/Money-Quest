@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Money Quest — Cartoon Goal Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>">
+</head>
+<body>
+  <div class="clouds" aria-hidden="true">
+    <span class="cloud c1"></span>
+    <span class="cloud c2"></span>
+    <span class="cloud c3"></span>
+    <span class="coin-float f1">🪙</span>
+    <span class="coin-float f2">💰</span>
+    <span class="coin-float f3">⭐</span>
+    <span class="coin-float f4">🪙</span>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+    <div class="logo-bubble">
+      <span class="logo-coin">🪙</span>
+      <div>
+        <h1>Money Quest!</h1>
+        <p>Save it. Stack it. Smash it!</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <label class="currency-pill" title="Pick your money symbol">
+        <span>💱</span>
+        <select id="currencySelect">
+          <option value="₹">₹ INR</option>
+          <option value="$">$ USD</option>
+          <option value="€">€ EUR</option>
+          <option value="£">£ GBP</option>
+        </select>
+      </label>
+      <button id="resetBtn" class="btn btn-ghost" type="button">↺ Reset</button>
+      <span id="cloudStatus" class="cloud-pill" title="Database connection status">☁️ connecting…</span>
+    </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- HERO / mascot strip -->
+    <section class="hero card pop">
+      <div class="mascot" aria-hidden="true">
+        <div class="pig">🐷</div>
+        <div class="sparkles">✨💸✨</div>
+      </div>
+      <div class="hero-text">
+        <span class="sticker">🎯 NEW QUEST</span>
+        <h2>How much moolah will <u>you</u> earn?</h2>
+        <p>Set a target, pick your days, then feed your piggy every time money lands. Watch it get <strong>chunky!</strong></p>
+        <div class="hero-stats">
+          <div class="mini-stat"><b id="heroPercent">0%</b><span>complete</span></div>
+          <div class="mini-stat"><b id="heroDaysLeft">—</b><span>days left</span></div>
+          <div class="mini-stat"><b id="heroPerDay">—</b><span>needed / day</span></div>
+        </div>
+      </div>
+      <div class="hero-piggy-meter">
+        <div class="piggy-stage">
+          <div id="piggyFace" class="piggy-face">🐽</div>
+          <div class="jar">
+            <div id="jarFill" class="jar-fill" style="height: 0%"></div>
+            <div class="jar-shine"></div>
+            <span class="jar-label">PIGGY POWER</span>
+          </div>
+        </div>
+        <div class="progress-shell">
+          <div class="progress-labels"><span>🪙 <b id="savedLabel">0</b> saved</span><span>🏁 <b id="targetLabel">0</b> goal</span></div>
+          <div class="progress-track">
+            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            <div id="progressCoin" class="progress-coin">🪙</div>
+          </div>
+          <p id="cheerMsg" class="cheer">Let's start your first quest! 👇</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <!-- GOAL SETUP -->
+      <section class="card tilt-left">
+        <h3><span class="emoji-badge">🗺️</span> Start a Money Quest</h3>
+        <p class="hint">Tell us the treasure + the timer. We do the math!</p>
+        <form id="goalForm" class="form">
+          <label>Quest name
+            <input id="goalName" type="text" maxlength="40" placeholder="e.g. New Laptop Fund 💻" required />
+          </label>
+          <label>How much to earn?
+            <div class="input-money">
+              <span id="moneySymbol">₹</span>
+              <input id="targetAmount" type="number" min="1" step="any" placeholder="10000" required />
+            </div>
+          </label>
+          <div class="two-col">
+            <label>How many days?
+              <input id="totalDays" type="number" min="1" max="3650" placeholder="30" required />
+            </label>
+            <label>Start date
+              <input id="startDate" type="date" required />
+            </label>
+          </div>
+          <button class="btn btn-sunny" type="submit">🚀 Launch Quest!</button>
+        </form>
+        <div class="doodle-row">⭐ 🎈 🍩 🎮 🧃 ⭐</div>
+      </section>
+
+      <!-- ADD EARNING -->
+      <section class="card tilt-right">
+        <h3><span class="emoji-badge pink">💸</span> Feed the Piggy!</h3>
+        <p class="hint">Earned money? Log it and watch confetti fly!</p>
+        <form id="earnForm" class="form">
+          <label>Amount earned
+            <div class="input-money green">
+              <span id="moneySymbol2">₹</span>
+              <input id="earnAmount" type="number" min="1" step="any" placeholder="500" required />
+            </div>
+          </label>
+          <div class="two-col">
+            <label>Date
+              <input id="earnDate" type="date" required />
+            </label>
+            <label>Note (optional)
+              <input id="earnNote" type="text" maxlength="40" placeholder="Freelance 🎨" />
+            </label>
+          </div>
+          <div class="quick-add">
+            <span>Quick:</span>
+            <button type="button" data-quick="100">+100</button>
+            <button type="button" data-quick="500">+500</button>
+            <button type="button" data-quick="1000">+1k</button>
+          </div>
+          <button class="btn btn-mint" type="submit">🪙 Cha-ching! Add it</button>
+        </form>
+        <div class="quest-facts">
+          <div><span>📅 End date</span><b id="endDateLabel">—</b></div>
+          <div><span>🔥 Daily target</span><b id="perDayLabel">—</b></div>
+          <div><span>💪 Still needed</span><b id="remainingLabel">—</b></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- HISTORY -->
+    <section class="card history-card">
+      <div class="history-head">
+        <h3><span class="emoji-badge blue">📒</span> Treasure Log <span id="entryCount" class="count-pill">0</span></h3>
+        <button id="clearLogBtn" class="btn btn-ghost small" type="button">Clear log</button>
+      </div>
+      <ul id="logList" class="log-list"></ul>
+      <div id="emptyLog" class="empty-log">
+        <div class="empty-face">🦄</div>
+        <p><strong>No treasure yet!</strong><br>Add your first earning above and the unicorn will dance.</p>
+      </div>
+    </section>
+
+    <footer>
+      Made with 💛 for money heroes • Data syncs to Supabase ☁️ (falls back to this browser offline) • Keep stacking!
+    </footer>
+  </main>
+
+  <div id="confettiBoom" class="confetti-boom" aria-hidden="true"></div>
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
