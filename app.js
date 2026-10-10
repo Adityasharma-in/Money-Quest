@@ -59,13 +59,6 @@ function getDaysLeft() {
   now.setHours(0, 0, 0, 0);
   return Math.ceil((end - now) / 86400000);
 }
-function getPerDayNeeded() {
-  if (!state.goal) return null;
-  const remaining = Math.max(0, Number(state.goal.target) - getSaved());
-  const left = getDaysLeft();
-  if (left === null || left <= 0) return remaining;
-  return remaining / left;
-}
 function cheerFor(percent, daysLeft) {
   if (!state.goal) return "Let's start your first quest! 👇";
   if (percent >= 100) return "🎉 QUEST COMPLETE! You did it, money hero!";
@@ -167,23 +160,140 @@ async function refreshFromCloudOrCache() {
 }
 
 // ---------- UI ----------
+let lastPercentBucket = -1;
+function spawnBubblesAndCoins(percent) {
+  const bubbles = $("vaultBubbles");
+  const coins = $("vaultCoins");
+  if (!bubbles || !coins) return;
+  bubbles.innerHTML = "";
+  coins.innerHTML = "";
+  if (!state.goal || percent <= 0) return;
+  const bubbleCount = Math.min(14, 3 + Math.floor(percent / 8));
+  for (let i = 0; i < bubbleCount; i++) {
+    const s = document.createElement("span");
+    const size = 6 + Math.random() * 12;
+    s.style.width = size + "px";
+    s.style.height = size + "px";
+    s.style.left = (4 + Math.random() * 88) + "%";
+    s.style.animationDuration = (1.6 + Math.random() * 2) + "s";
+    s.style.animationDelay = (Math.random() * 1.6) + "s";
+    bubbles.appendChild(s);
+  }
+  const coinCount = Math.min(6, 1 + Math.floor(percent / 20));
+  for (let i = 0; i < coinCount; i++) {
+    const s = document.createElement("span");
+    s.textContent = i % 2 ? "💰" : "🪙";
+    s.style.left = (8 + Math.random() * 78) + "%";
+    s.style.animationDelay = (Math.random() * 1.4) + "s";
+    coins.appendChild(s);
+  }
+}
+function vaultSplashBurst(big = false) {
+  const box = $("vaultSplash");
+  const vault = $("vault");
+  if (!box) return;
+  const emojis = big
+    ? ["🪙", "💰", "⭐", "✨", "💸", "🎉", "💥", "🌟"]
+    : ["🪙", "💰", "⭐", "✨", "💸"];
+  const count = big ? 44 : 12;
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement("span");
+    if (big) s.classList.add("fountain");
+    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    s.style.setProperty("--dx", `${(Math.random() - 0.5) * (big ? 460 : 220)}px`);
+    if (big) {
+      s.style.setProperty("--dy", `${-140 - Math.random() * 260}px`);
+      s.style.setProperty("--rot", `${(Math.random() - 0.5) * 360}deg`);
+      s.style.fontSize = (1.2 + Math.random() * 2) + "rem";
+    }
+    s.style.left = (42 + Math.random() * 16) + "%";
+    s.style.animationDuration = (0.7 + Math.random() * 0.8) + "s";
+    box.appendChild(s);
+    setTimeout(() => s.remove(), 1600);
+  }
+  if (vault) {
+    vault.classList.remove("erupt");
+    void vault.offsetWidth;
+    vault.classList.add("erupt");
+  }
+}
+let burstDoneForGoalId = null;
+function maybeShowBurstButton(percent) {
+  const btn = $("burstBtn");
+  if (!btn) return;
+  const ready = state.goal && percent >= 100;
+  // Hide again if a new quest starts.
+  if (state.goal && burstDoneForGoalId && burstDoneForGoalId !== (state.goal.id || state.goal.name)) {
+    burstDoneForGoalId = null;
+  }
+  const alreadyBurst = ready && burstDoneForGoalId === (state.goal.id || state.goal.name);
+  btn.classList.toggle("hidden", !ready || alreadyBurst);
+  if (btn && ready && !alreadyBurst) {
+    btn.innerHTML = "💥 BURST IT!";
+  }
+}
+function bigGoalBurst() {
+  const vault = $("vault");
+  const vaultFill = $("vaultFill");
+  const overlay = $("burstOverlay");
+  // 1) Jar erupts: shake + fountain of coins.
+  if (vault) {
+    vault.classList.remove("shatter");
+    void vault.offsetWidth;
+    vault.classList.add("shatter");
+  }
+  vaultSplashBurst(true);
+  confettiBoom(true);
+  setTimeout(() => confettiBoom(true), 450);
+  // 2) Coins drain out of the jar for a satisfying empty.
+  if (vaultFill) {
+    vault.classList.add("emptying");
+    vaultFill.style.height = "4%";
+  }
+  // 3) Full-screen trophy card.
+  const saved = getSaved();
+  const msg = $("burstMsg");
+  if (msg && state.goal) {
+    msg.textContent = `"${state.goal.name}" — ${money(saved)} stacked! Take a victory lap! 🏆`;
+  }
+  const coins = $("burstCoins");
+  if (coins) coins.textContent = "🪙💰🪙💸🪙";
+  setTimeout(() => {
+    if (overlay) {
+      overlay.classList.remove("hidden");
+      overlay.setAttribute("aria-hidden", "false");
+    }
+  }, 650);
+  if (state.goal) burstDoneForGoalId = state.goal.id || state.goal.name;
+  maybeShowBurstButton(100);
+  toast("💥 BOOM! Goal bursted beautifully!");
+}
 function render() {
   const saved = getSaved();
   const target = state.goal ? Number(state.goal.target) : 0;
   const percent = target > 0 ? Math.min(100, (saved / target) * 100) : 0;
   const daysLeft = getDaysLeft();
-  const perDay = getPerDayNeeded();
   const remaining = target > 0 ? Math.max(0, target - saved) : 0;
 
   $("savedLabel").textContent = money(saved);
   $("targetLabel").textContent = money(target);
   $("heroPercent").textContent = `${Math.floor(percent)}%`;
   $("heroDaysLeft").textContent = daysLeft === null ? "—" : (daysLeft < 0 ? "0" : daysLeft);
-  $("heroPerDay").textContent = perDay === null ? "—" : money(Math.ceil(perDay));
   $("progressFill").style.width = percent + "%";
-  $("progressCoin").style.left = percent + "%";
-  $("jarFill").style.height = percent + "%";
+  // Keep the coin tucked INSIDE the bar: clamp its center so it never hangs off either end.
+  $("progressCoin").style.left = `calc(${Math.min(96, Math.max(4, percent))}% )`;
+  const vaultFill = $("vaultFill");
+  if (vaultFill) {
+    // Keep tiny progress visible: enforce a small minimum height so 1-2% still shows at the bottom.
+    const displayHeight = percent <= 0 ? 0 : Math.max(percent, 4);
+    vaultFill.style.height = displayHeight + "%";
+    vaultFill.classList.toggle("complete", percent >= 100);
+  }
   $("cheerMsg").textContent = cheerFor(percent, daysLeft);
+  const questTitle = $("questTitle");
+  if (questTitle && state.goal) {
+    questTitle.innerHTML = `${escapeHtml(state.goal.name)} — ${Math.floor(percent)}% there! 🎯`;
+  }
 
   const face = $("piggyFace");
   if (percent >= 100) face.textContent = "🤩";
@@ -195,8 +305,11 @@ function render() {
   face.style.transform = `scale(${1 + percent / 250}) rotate(${(percent % 10) - 5}deg)`;
 
   $("endDateLabel").textContent = prettyDate(getEndDate());
-  $("perDayLabel").textContent = perDay === null ? "—" : money(Math.ceil(perDay));
   $("remainingLabel").textContent = target ? money(remaining) : "—";
+  const end2 = $("endDateLabel2");
+  if (end2) end2.textContent = prettyDate(getEndDate());
+  const rem2 = $("remainingLabel2");
+  if (rem2) rem2.textContent = target ? money(remaining) : "—";
   $("moneySymbol").textContent = state.currency;
   $("moneySymbol2").textContent = state.currency;
   $("currencySelect").value = state.currency;
@@ -232,6 +345,15 @@ function render() {
     if (document.activeElement !== $("totalDays")) $("totalDays").value = state.goal.days || "";
     if (document.activeElement !== $("startDate")) $("startDate").value = state.goal.start || todayISO();
   }
+
+  // Refresh vault life only when crossing a 10% bucket (avoids rebuilding every render).
+  const bucket = Math.floor(percent / 10);
+  if (bucket !== lastPercentBucket) {
+    lastPercentBucket = bucket;
+    spawnBubblesAndCoins(percent);
+    if (bucket > 0) vaultSplashBurst(percent >= 100);
+  }
+  maybeShowBurstButton(percent);
 }
 
 let toastTimer;
@@ -281,7 +403,7 @@ $("goalForm").addEventListener("submit", async (e) => {
     cacheLocal();
     render();
     confettiBoom(false);
-    toast(`🚀 "${name}" saved to Supabase! Earn ${money(Math.ceil(target / days))}/day!`);
+    toast(`🚀 "${name}" saved to Supabase!`);
   } catch (err) {
     toast("⚠️ Save failed: " + err.message + " — did you run supabase-schema.sql?");
   }
@@ -371,5 +493,25 @@ function initDates() {
   if (!$("earnDate").value) $("earnDate").value = todayISO();
 }
 
+function initTopbarShrink() {
+  const bar = document.querySelector(".topbar");
+  if (!bar) return;
+  const onScroll = () => bar.classList.toggle("scrolled", window.scrollY > 24);
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+}
+
 initDates();
+initTopbarShrink();
+const burstBtn = $("burstBtn");
+if (burstBtn) burstBtn.addEventListener("click", bigGoalBurst);
+const burstCloseBtn = $("burstCloseBtn");
+if (burstCloseBtn) burstCloseBtn.addEventListener("click", () => {
+  const overlay = $("burstOverlay");
+  if (overlay) {
+    overlay.classList.add("hidden");
+    overlay.setAttribute("aria-hidden", "true");
+  }
+  render();
+});
 refreshFromCloudOrCache();

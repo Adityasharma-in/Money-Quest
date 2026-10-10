@@ -47,40 +47,81 @@
   </header>
 
   <main class="wrap">
-    <!-- HERO / mascot strip -->
-    <section class="hero card pop">
-      <div class="mascot" aria-hidden="true">
-        <div class="pig">🐷</div>
-        <div class="sparkles">✨💸✨</div>
+    <!-- VAULT SHOWCASE — the main attraction -->
+    <section class="vault-showcase card pop">
+      <div class="showcase-header">
+        <span class="sticker">🎯 LIVE QUEST</span>
+        <h2 id="questTitle">How much moolah will <u>you</u> earn?</h2>
+        <p id="cheerMsg" class="cheer">Let's start your first quest! 👇</p>
       </div>
-      <div class="hero-text">
-        <span class="sticker">🎯 NEW QUEST</span>
-        <h2>How much moolah will <u>you</u> earn?</h2>
-        <p>Set a target, pick your days, then feed your piggy every time money lands. Watch it get <strong>chunky!</strong></p>
-        <div class="hero-stats">
-          <div class="mini-stat"><b id="heroPercent">0%</b><span>complete</span></div>
-          <div class="mini-stat"><b id="heroDaysLeft">—</b><span>days left</span></div>
-          <div class="mini-stat"><b id="heroPerDay">—</b><span>needed / day</span></div>
-        </div>
-      </div>
-      <div class="hero-piggy-meter">
-        <div class="piggy-stage">
-          <div id="piggyFace" class="piggy-face">🐽</div>
-          <div class="jar">
-            <div id="jarFill" class="jar-fill" style="height: 0%"></div>
-            <div class="jar-shine"></div>
-            <span class="jar-label">PIGGY POWER</span>
+
+      <div class="vault-layout">
+        <!-- LEFT: numbers -->
+        <div class="vault-side left">
+          <div class="big-number saved">
+            <span>🪙 SAVED</span>
+            <b id="savedLabel">0</b>
+          </div>
+          <div class="big-number target">
+            <span>🏁 GOAL</span>
+            <b id="targetLabel">0</b>
+          </div>
+          <div class="mascot-mini" aria-hidden="true">
+            <div class="pig">🐷</div>
+            <div class="sparkles">✨💸✨</div>
           </div>
         </div>
-        <div class="progress-shell">
-          <div class="progress-labels"><span>🪙 <b id="savedLabel">0</b> saved</span><span>🏁 <b id="targetLabel">0</b> goal</span></div>
-          <div class="progress-track">
-            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
-            <div id="progressCoin" class="progress-coin">🪙</div>
+
+        <!-- CENTER: GIANT VAULT -->
+        <div class="vault-center">
+          <div class="vault-glow" aria-hidden="true"></div>
+          <span class="coin-orbit o1">🪙</span>
+          <span class="coin-orbit o2">💰</span>
+          <span class="coin-orbit o3">⭐</span>
+          <span class="coin-orbit o4">💸</span>
+          <div class="vault" id="vault" role="img" aria-label="Goal progress vault">
+            <div class="vault-ticks" aria-hidden="true">
+              <span style="bottom:25%">25%</span>
+              <span style="bottom:50%">50%</span>
+              <span style="bottom:75%">75%</span>
+            </div>
+            <div id="vaultFill" class="vault-fill" style="height: 0%">
+              <div class="vault-wave w1"></div>
+              <div class="vault-wave w2"></div>
+              <div id="vaultBubbles" class="vault-bubbles" aria-hidden="true"></div>
+              <div id="vaultCoins" class="vault-coins" aria-hidden="true"></div>
+            </div>
+            <div class="vault-glass-shine" aria-hidden="true"></div>
+            <div class="vault-face-row">
+              <div id="piggyFace" class="piggy-face">😴</div>
+            </div>
+            <div class="vault-percent">
+              <b id="heroPercent">0%</b>
+              <span>FILLED!</span>
+            </div>
           </div>
-          <p id="cheerMsg" class="cheer">Let's start your first quest! 👇</p>
+          <div id="vaultSplash" class="vault-splash" aria-hidden="true"></div>
+          <div class="burst-row">
+            <button id="burstBtn" class="btn btn-burst hidden" type="button">💥 BURST IT!</button>
+          </div>
+        </div>
+
+        <!-- RIGHT: time stats -->
+        <div class="vault-side right">
+          <div class="mini-stat big"><b id="heroDaysLeft">—</b><span>📅 days left</span></div>
+          <div class="progress-shell slim">
+            <div class="progress-track">
+              <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+              <div id="progressCoin" class="progress-coin">🪙</div>
+            </div>
+          </div>
+          <div class="quest-facts stacked">
+            <div><span>📅 End date</span><b id="endDateLabel">—</b></div>
+            <div><span>💪 Still needed</span><b id="remainingLabel">—</b></div>
+          </div>
         </div>
       </div>
+      <p class="showcase-sub">Set a target below, feed the piggy every time money lands, and watch the vault erupt. <strong>Chunky piggy = happy life!</strong></p>
     </section>
 
     <div class="grid">
@@ -139,9 +180,8 @@
           <button class="btn btn-mint" type="submit">🪙 Cha-ching! Add it</button>
         </form>
         <div class="quest-facts">
-          <div><span>📅 End date</span><b id="endDateLabel">—</b></div>
-          <div><span>🔥 Daily target</span><b id="perDayLabel">—</b></div>
-          <div><span>💪 Still needed</span><b id="remainingLabel">—</b></div>
+          <div><span>📅 End date</span><b id="endDateLabel2">—</b></div>
+          <div><span>💪 Still needed</span><b id="remainingLabel2">—</b></div>
         </div>
       </section>
     </div>
@@ -165,6 +205,17 @@
   </main>
 
   <div id="confettiBoom" class="confetti-boom" aria-hidden="true"></div>
+  <div id="burstOverlay" class="burst-overlay hidden" aria-hidden="true">
+    <div class="burst-flash"></div>
+    <div class="burst-card pop">
+      <div class="burst-stars">✨🎉✨</div>
+      <div class="burst-trophy">🏆</div>
+      <h2>GOAL BURSTED!</h2>
+      <p id="burstMsg">You smashed it, money hero!</p>
+      <div id="burstCoins" class="burst-coins" aria-hidden="true"></div>
+      <button id="burstCloseBtn" class="btn btn-sunny" type="button">🥳 Awesome!</button>
+    </div>
+  </div>
   <div id="toast" class="toast" role="status"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
